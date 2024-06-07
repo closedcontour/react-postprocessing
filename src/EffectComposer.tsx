@@ -1,5 +1,5 @@
 import type { TextureDataType } from 'three'
-import { HalfFloatType, NoToneMapping } from 'three'
+import { HalfFloatType, NoToneMapping, Vector2 } from 'three'
 import React, {
   forwardRef,
   useMemo,
@@ -32,7 +32,7 @@ export const EffectComposerContext = createContext<{
   resolutionScale?: number
 }>(null!)
 
-export type EffectComposerProps = {  
+export type EffectComposerProps = {
   enabled?: boolean
   children: JSX.Element | JSX.Element[]
   depthBuffer?: boolean
@@ -50,6 +50,8 @@ export type EffectComposerProps = {
 
 const isConvolution = (effect: Effect): boolean =>
   (effect.getAttributes() & EffectAttribute.CONVOLUTION) === EffectAttribute.CONVOLUTION
+
+const glSize = new Vector2()
 
 export const EffectComposer = React.memo(
   forwardRef(
@@ -114,7 +116,10 @@ export const EffectComposer = React.memo(
         resolutionScale,
       ])
 
-      useEffect(() => composer?.setSize(size.width, size.height), [composer, size])
+      gl.getSize(glSize)
+      // Disabling exhaustive deps warning because this component will rerender when the WebGLRenderer size changes
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      useEffect(() => composer?.setSize(glSize.width, glSize.height), [composer, glSize.width, glSize.height])
       useFrame(
         (_, delta) => {
           if (enabled) {
